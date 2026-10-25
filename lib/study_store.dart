@@ -83,7 +83,6 @@ class StudyStore {
   Future<String?> getSetting(String key) async {
     final rows = await (await db).query(
       'settings',
-      'schedule',
       where: 'key=?',
       whereArgs: [key],
       limit: 1,

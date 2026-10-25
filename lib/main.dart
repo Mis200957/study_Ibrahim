@@ -529,7 +529,7 @@ class _HomeState extends State<StudyHome> {
       builder: (c, l) {
         final lessons = l.data ?? [];
         final done = lessons.where((x) => x['done'] == 1).length;
-        final pct = lessons.isEmpty ? 0 : done / lessons.length;
+        final double pct = lessons.isEmpty ? 0.0 : done / lessons.length;
         return Card(
           color: card,
           shape: RoundedRectangleBorder(
@@ -682,7 +682,7 @@ class _HomeState extends State<StudyHome> {
       final d = s.data!;
       final rows = List<Map<String, Object?>>.from(d['subjects'] as List);
       final total = d['total'] as int, done = d['done'] as int;
-      final pct = total == 0 ? 0.0 : done / total;
+      final double pct = total == 0 ? 0.0 : done / total;
       final best = rows.isEmpty ? null : rows.first;
       return _scroll(
         Column(
@@ -1555,12 +1555,10 @@ class _HomeState extends State<StudyHome> {
         actions: [
           TextButton(
             onPressed: () async {
-              final x = await FilePicker.platform.pickFiles(
-                type: FileType.image,
-              );
-              if (x?.files.single.path != null) {
+              final x = await FilePicker.pickFile(type: FileType.image);
+              if (x?.path != null) {
                 final docs = await getApplicationDocumentsDirectory();
-                final source = File(x!.files.single.path!);
+                final source = File(x!.path!);
                 final extension = source.path.contains('.')
                     ? source.path.substring(source.path.lastIndexOf('.'))
                     : '.jpg';
@@ -1595,7 +1593,7 @@ class _HomeState extends State<StudyHome> {
   Future<void> backup() async {
     try {
       final file = await store.exportBackup();
-      final destination = await FilePicker.platform.saveFile(
+      final destination = await FilePicker.saveFile(
         dialogTitle: tr('حفظ النسخة الاحتياطية', 'Save backup'),
         fileName: 'ibrahim_study_backup.json',
         bytes: await file.readAsBytes(),
@@ -1615,11 +1613,11 @@ class _HomeState extends State<StudyHome> {
   }
 
   Future<void> restore() async {
-    final pick = await FilePicker.platform.pickFiles(
+    final pick = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
-    if (pick?.files.single.path == null) return;
+    if (pick?.path == null) return;
     final ok = await confirm(
       tr(
         'ستستبدل الاستعادة بياناتك الحالية. متابعة؟',
@@ -1628,7 +1626,7 @@ class _HomeState extends State<StudyHome> {
     );
     if (!ok) return;
     try {
-      await store.importBackup(File(pick!.files.single.path!));
+      await store.importBackup(File(pick!.path!));
       refresh();
       message(tr('تمت استعادة البيانات', 'Backup restored'));
     } catch (e) {
